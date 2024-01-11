@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Chuck Norris Factoids</title>
+</head>
+<body class="p-5">
+    <header class="space-y-4">
+        <h1 class="text-2xl font-bold">Chuck Norris Satirical Factoids</h1>
+        <div class="flex items-center space-x-2">
+            <input class="px-4 py-2 border-2 border-black rounded" list="categories" name="category" placeholder="Categories">
+            <datalist id="categories">
+                <!-- <option value="Internet Explorer"> -->
+            </datalist>
+            <button id="search-fact" class="rounded bg-black text-white px-4 py-2">Random Fact</button>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button id="random-fact" class="rounded bg-orange-500 text-white px-4 py-2 font-semibold">Random Fact</button>
+            <button id="save-fact" class="rounded bg-yellow-500 text-white px-4 py-2 font-semibold">Save Fact</button>
+        </div>
+    </header>
+    <main class="space-y-3 py-2">
+        <div id="curr-fact" class="space-y-3"></div>
+        <div class="flex items-center space-x-2">
+            <h3 class="font-bold text-xl">Favorites</h3>
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-star text-yellow-500" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z" /></svg>
+        </div>
+        <div id="fav-facts" class="flex flex-col space-y-3"></div>
+    </main>
+    <script>
+        const searchInput = document.querySelector('input');
+        const listEl = document.querySelector('datalist');
+        const searchBtn = document.getElementById('search-fact');
+        const randomBtn = document.getElementById('random-fact');
+        const saveBtn = document.getElementById('save-fact');
+        const currFactEl = document.getElementById('curr-fact');
+        const favoritesEL = document.getElementById('fav-facts');
+        let facts = []; 
+
+        async function getData(){
+            const url = 'https://api.chucknorris.io/jokes/random';
+            const request = new Request(url,{
+                mode:"cors"
+            });
+            try{
+                const response = await fetch(request);
+                const data = await response.json();
+                showData(data);
+            }catch(error){
+                console.log(error);
+            }
+        }       
+        async function getCategoryFact(){
+            let categoryValue = searchInput.value;
+            const url = `https://api.chucknorris.io/jokes/random?category=${categoryValue}`;
+            const request = new Request(url,{
+                mode:"cors"
+            })
+            try{
+                const response = await fetch(request);
+                const data = await response.json();
+                showData(data);
+                searchInput.value = '';
+            }catch(error){
+                console.log(error);
+            }
+        }
+        async function getCategories(){
+            const url = `https://api.chucknorris.io/jokes/categories`;
+            const request = new Request(url,{
+                mode:"cors"
+            })
+            try{
+                const response = await fetch(request);
+                const data = await response.json();
+                mapCategories(data);
+            }catch(error){
+                console.log(error);
+            }
+        } 
+        function showData(data){
+            currFactEl.innerHTML = `
+                <img width="100" height="100" src="https://img.icons8.com/plasticine/100/chuck-norris.png" alt="Chuck Norris icon">
+                <p id="fact" class="font-semibold">${data.value}</p>
+            `;
+        }
+        function saveFact(){
+            const factValue = currFactEl.textContent;
+            if(currFactEl.textContent === ''){
+                alert('Oops... No fact to save');
+                return;
+            }
+            facts.push(factValue);
+            checkFavs();
+        }
+        function checkFavs(){
+            if(facts.length === 0){
+                favoritesEL.textContent = 'No favorites... yet';
+            }else{
+                favoritesEL.textContent = '';
+                facts.forEach(fact => {
+                    const factEl = document.createElement('p');
+                    factEl.textContent = fact;
+                    favoritesEL.appendChild(factEl);
+                })
+            }
+        }
+        function mapCategories(categories){
+            categories.forEach(category => {
+                const item = document.createElement("option");
+                item.value = category;
+                listEl.appendChild(item);
+            })
+        }
+        getCategories();
+        checkFavs();
+        randomBtn.addEventListener("click",getData);
+        saveBtn.addEventListener("click",saveFact);
+        searchBtn.addEventListener("click",getCategoryFact);
+    </script>
+</body>
+</html>
