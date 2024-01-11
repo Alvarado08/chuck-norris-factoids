@@ -53,7 +53,7 @@
             }
         }       
         async function getCategoryFact(){
-            let categoryValue = searchInput.value;
+            let categoryValue = searchInput.value.trim();
             const url = `https://api.chucknorris.io/jokes/random?category=${categoryValue}`;
             const request = new Request(url,{
                 mode:"cors"
@@ -61,7 +61,12 @@
             try{
                 const response = await fetch(request);
                 const data = await response.json();
-                showData(data);
+                if(searchInput.value === ''){
+                    alert("Oops... Looks like you didn't choose a category!");
+                    return;
+                }else{
+                    showData(data);
+                }
                 searchInput.value = '';
             }catch(error){
                 console.log(error);
